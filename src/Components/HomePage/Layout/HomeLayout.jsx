@@ -1,6 +1,6 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Nav from "./Nav";
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import Footers from "../../Footers";
 import {
   fetchAllProductsApi,
@@ -38,10 +38,32 @@ const HomeLayout = ({ topDivRef, cartItems, topMargin }) => {
   //   const token = localStorage.getItem("token");
   //   LoadAll(userId);
   // }, [userId]);
+  const [Criteria,setCriteria]= useState({
+    deals: "string",
+    brands: "string",
+    generics: "string",
+    discount: 0,
+    expiring: 0,
+    wholeSeller: "string",
+    pharmacyItems: "string",
+    prescriptionDrugs: "string",
+    otcProducts: "string",
+    vawdSeller: "string",
+    topSellingProducts: "string",
+    buyAgain: "string"
+  })
+  const navigate= useNavigate();
+  const [productData,setproductData] = useState();
+  const TriggerAPI = async (obj)=>{
+      setCriteria(obj); 
+      console.log(obj,"object criteria");
 
+      // navigate('/products');
+      
+  }
   return (
     <div className="w-screen overflow-scroll ">
-      <Nav topDivRef={topDivRef} cartItems={cartItems} />
+      <Nav topDivRef={topDivRef} TriggerAPI={TriggerAPI} />
       <div
         className="w-full flex justify-center mt-[122px]"      >
         <div className="Largest:w-[1550px]  Laptop:w-full  w-full ">

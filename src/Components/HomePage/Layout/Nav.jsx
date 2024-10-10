@@ -1,10 +1,10 @@
 import React from "react";
 
-import Logo from "../../../assets/logo2.png"
+import Logo from "../../../assets/logo2.png";
 import Search from "../../../assets/search.png";
 import cartNav from "../../../assets/cartNav2.png";
 import like from "../../../assets/wishlistnav_icon.png";
-import compare from "../../../assets/CompareNav2.png";
+// import compare from "../../../assets/CompareNav2.png";
 
 import note from "../../../assets/Icons/Compare.png";
 
@@ -13,7 +13,7 @@ import Buy from "../../../assets/buy3d.png";
 import sell from "../../../assets/sell3d.png";
 import bid from "../../../assets/Bid3d.png";
 import BackgroundImage from "../../../assets/BackgroundImage.png";
-import { Link, useNavigate } from "react-router-dom";
+
 import menu from "../../../assets/menu.png";
 import { useState, useEffect, useRef } from "react";
 import add from "../../../assets/add.png";
@@ -21,39 +21,65 @@ import warning from "../../../assets/Icons/warning2.png";
 import linkedin from "../../../assets/linkedin_icon.png";
 import facebook from "../../../assets/facebook_icon.png";
 import insta from "../../../assets/instagram_icon.png";
-import twitter from "../../../assets/twitter_icon.png";
+// import twitter from "../../../assets/twitter_icon.png";
 import { FaFacebook, FaInstagramSquare } from "react-icons/fa";
 import { FaLinkedin } from "react-icons/fa6";
 import { IoLogoInstagram } from "react-icons/io";
 import { FiShoppingCart } from "react-icons/fi";
 import myaccount from "../../../assets/My Account.png";
 import { TbTruckReturn } from "react-icons/tb";
-import Baby from "../../All Category/Baby";
-import Beauty from "../../All Category/Beauty";
-import Grocery from "../../All Category/Grocery";
-import HealthTopics from "../../All Category/HealthTopics";
-import Herbs from "../../All Category/Herbs";
-import Home from "../../All Category/Home";
-import Medicines from "../../All Category/Medicines";
-import PersonalCare from "../../All Category/PersonalCare";
-import Pets from "../../All Category/Pets";
-import SportsNutrition from "../../All Category/SportsNutrition";
-import Suppliments from "../../All Category/Suppliments";
 import WhyPharma from "../NavLinks/WhyPharma";
 import search from "../../../assets/search-icon.png";
 import dropdown from "../../../assets/Down-arrow .png";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchCriteriaProductsApi } from "../../../Api/ProductApi";
+import { Tooltip } from "@mui/material";
+import { fetchProductCategoriesGetAll } from "../../../Api/MasterDataApi";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
-function Nav({ topDivRef, Form_Data }) {
-  const cartItems = [];
+let text =[];
+
+function Nav({ topDivRef, Form_Data, TriggerAPI }) {
   let navigate = useNavigate();
-  const user = useSelector((state)=>state.user.user);
-  const cart = useSelector((state)=>state.cart.cart);
+  const user = useSelector((state) => state.user.user);
+  const cart = useSelector((state) => state.cart.cart);
+  const components = useSelector((state) => state.master.productCategoryGetAll);
+  console.log("categoeryyy-->", components);
+  const modifiedComponents = [
+    { productCategoryId: -1, categoryName: 'All' },
+    ...components
+  ];
 
   const [selectedIndex, setSelectedIndex] = useState();
 
   const [isDropdownOpen, setDropdownOpen] = useState(false);
-  const [popUps, setPopUps] = useState(<Baby />);
+
+  const [activePopUp, setActivePopUp] = useState(null);
+  const [selectedItem, setSelectedItem] = useState("All");
+  const location = useLocation();
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const category = searchParams.get("CategoryName");
+    if(category===null)
+    {
+      setSelectedItem("Äll")
+
+    }
+    else if (category && components.length > 0) {
+      const component = modifiedComponents.find(
+        (comp) => comp.productCategoryId == category
+      );
+      console.log("heyeheyehhoanceu",component,category)
+      if (component) {
+        setSelectedItem(component.categoryName); // Set the name if found
+      }
+      else
+      {
+        setSelectedItem("Äll")
+      }
+    }
+  }, [location.search]);
 
   const dropdownRef = useRef(null);
   const handleClickOutside = (event) => {
@@ -61,18 +87,44 @@ function Nav({ topDivRef, Form_Data }) {
       setDropdownOpen(false);
     }
   };
+  const dispatch = useDispatch();
   useEffect(() => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
-  const handleDropdownToggle = () => {
+  useEffect(() => {
+    dispatch(fetchProductCategoriesGetAll());
+  }, []);
+  const handleDropdownToggle = (e) => {
+    e.preventDefault();
     setDropdownOpen(!isDropdownOpen);
   };
+  const searchParams = new URLSearchParams(location.search);
+  const categoryId = searchParams.get("CategoryName");
+
+  // const handleItemClick = (name) => {
+  //   if (activePopUp === name) {
+  //     setActivePopUp(null); // Close the popup if it's already open
+  //     setSelectedItem("All"); // Reset to "All" when closed
+  //   } else {
+  //     setActivePopUp(name); // Set the active popup
+  //     setSelectedItem(name); // Update the button label with the selected item
+  //   }
+  //   setDropdownOpen(false); // Close the dropdown after selection
+  // };
 
   const handleItemClick = (name) => {
-    setPopUps(name);
+    if (activePopUp === name) {
+      setActivePopUp(null); // Close the popup if it's already open
+    } else {
+      setActivePopUp(name); // Set the active popup
+      if (name === "All") {
+        navigate('/allProducts'); // Navigate to '/allProducts' if "All" is clicked
+      }
+    }
+    setDropdownOpen(false); // Close the dropdown after selection
   };
 
   const handleCatMouseLeave = () => {
@@ -92,20 +144,28 @@ function Nav({ topDivRef, Form_Data }) {
     "Products",
     "Why PharmEtrade",
     "About Us",
-    "Contact Us",
+    // "Contact Us",
     "Request Demo",
   ];
 
   const [errorMessage, setErrorMessage] = useState("");
 
+  // const handleItemclick = (item) => {
+  //   if (user?.accountTypeId == 1 && item.label === "SELL") {
+  //     setErrorMessage(
+  //       // "You have login as buyer contact us help@pharmetrade.com"
+  //       <>
+  //       You have login as buyer contact us {" "}
+
+  //       <a href="  " className="text-blue-900 underline ">help@pharmetrade.com</a></>
+  //     );
+  //   } else {
+  //     navigate(item.path);
+  //   }
+  // };
+
   const handleItemclick = (item) => {
-    if (user?.accountTypeId == 1 && item.label === "SELL") {
-      setErrorMessage(
-        "You have login as buyer contact us help@pharmetrade.com"
-      );
-    } else {
-      navigate(item.path);
-    }
+    navigate(item.path);
   };
 
   // Clear error message after 3 seconds
@@ -118,50 +178,79 @@ function Nav({ topDivRef, Form_Data }) {
     // { label: "JOIN", icon: join, path: "/login" },
     // { label: "SELL", icon: sell, path:"/layout/addproduct" },
     // { label: "BID", icon: bid, path: "/bid" },
-    { label: "BUY", icon: Buy, path: user ? "/layout" : "login" },
-    { label: "JOIN", icon: join, path: "/login" },
+    { label: "BUY", icon: Buy, path: user ? "/layout/layoutbuy" : "login" },
     {
       label: "SELL",
       icon: sell,
       path: user ? "/layout/addproduct" : "/login",
     },
     { label: "BID", icon: bid, path: user ? "/bid" : "login" },
+    { label: "JOIN", icon: join, path: "/signup" },
   ];
 
   const downSocialItems = [
     { icon: linkedin, path: "#" },
     { icon: facebook, path: "#" },
     { icon: insta, path: "#" },
-    { icon: twitter, path: "#" },
+    // { icon: twitter, path: "#" },
   ];
 
-  const components = [
-    { name: "Deals", component: <Baby /> },
-    { name: "Brands ", component: <Beauty /> },
-    { name: "Generic", component: <HealthTopics /> },
-    { name: "Discount > 75%", component: <Home /> },
-    { name: "Discount > 50%", component: <Medicines /> },
-    { name: "Discount > 25%", component: <PersonalCare /> },
-    { name: "Expiring within 3 months", component: <Pets /> },
-    { name: "Expiring within 6 months", component: <SportsNutrition /> },
-    { name: "Expiring within 12 months", component: <Suppliments /> },
-    { name: "Whole saler item ", component: <Suppliments /> },
-    { name: "Pharmacy item ", component: <Suppliments /> },
-    { name: "Prescription Drugs ", component: <Suppliments /> },
-    { name: "OTC Products ", component: <Suppliments /> },
-    { name: "VAWD Sellers", component: <Suppliments /> },
-    { name: "Top Selling Products ", component: <Suppliments /> },
-    { name: "Buy Again  ", component: <Suppliments /> },
-  ];
+  // const components = [
+  //   { id: 1, name: "Prescription Medications" },
+  //   { id: 2, name: "Baby & Child Care Products" },
+  //   { id: 4, name: "Health care products" },
+  //   { id: 5, name: "Household Suppliers" },
+  //   { id: 6, name: "Oral Care Products" },
+  //   { id: 7, name: "Stationery & Gift Wrapping Supplies" },
+  //   { id: 8, name: "Vision Products" },
+  //   { id: 9, name: "Diet & Sports Nutrition" },
+  //   { id: 10, name: "Vitamins, Minerals & Supplements" },
+  //   { id: 11, name: "Personal Care Products" },
+  // ];
+
+  const handleCriteria = async (obj) => {
+    let Criteria = {
+      productCategoryId: obj.productCategoryId,
+    };
+
+    console.log("cr--->", obj);
+    if(obj.productCategoryId===-1)
+    {
+      navigate('/allProducts')
+      return;
+    }
+    await fetchCriteriaProductsApi(Criteria);
+    navigate(
+      `/allProducts/CategoryProducts?CategoryName=${obj.productCategoryId}`
+    );
+  };
+  useEffect(() => {
+    if (location.pathname.includes("allProducts")) {
+      const searchParams = new URLSearchParams(location.search);
+      const category = searchParams.get("CategoryName");
+      if (category && components.length > 0) {
+        const component = components.find(
+          (comp) => comp.productCategoryId === category
+        );
+
+        if (component) {
+          setSelectedItem(component.categoryName);
+        }
+      }
+    } else {
+      setSearchInput("");
+      setSelectedItem("All");
+    }
+  }, [location]);
 
   const handleSelect = (index) => {
     setSelectedIndex(index);
     if (MenuItems[index] === "Home") navigate("/app");
-    else if (MenuItems[index] === "Products") navigate("/products");
+    else if (MenuItems[index] === "Products") navigate("/allProducts");
     else if (MenuItems[index] === "Why PharmEtrade")
       navigate("/whypharmetrade");
     else if (MenuItems[index] === "About Us") navigate("/aboutus");
-    else if (MenuItems[index] === "Contact Us") navigate("/contactus");
+    // else if (MenuItems[index] === "Contact Us") navigate("/contactus");
     else if (MenuItems[index] === "Request Demo") navigate("/requestdemo");
   };
 
@@ -196,7 +285,7 @@ function Nav({ topDivRef, Form_Data }) {
   }
 
   function handleuser() {
-    navigate("/user");
+    navigate("/layout/layoutbuy");
   }
   function handleorder() {
     navigate("/orderhistory");
@@ -226,31 +315,53 @@ function Nav({ topDivRef, Form_Data }) {
     }
   };
 
+  const handleKeyDown = (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault(); // Prevent the default behavior
+      handleSearchAPI(); // Call submit function when Enter is pressed
+    }
+  };
+
+  const [SearchInput, setSearchInput] = useState("");
+  console.log(SearchInput, "search");
+  const handleSearch = async (e) => {
+    setSearchInput(e.target.value);
+  };
+  const handleSearchAPI = async () => {
+    let Criteria = {
+      productName: SearchInput,
+    };
+    await fetchCriteriaProductsApi(Criteria);
+    navigate(`/allProducts?Search=${SearchInput}`);
+    setSearchInput("")
+  };
+
   return (
     <div
       ref={topDivRef}
       className=" fixed w-screen pt-1   z-10 bg-white text-grey-500"
     >
       <div className=" flex flex-col w-full justify-between ">
-        <ul className=" text-3xl w-full  ">
-          <div className="flex flex-row h-[60px] justify-between  gap-4 md:gap-12 lg:gap-10  items-center  text-xl bg-white text-gray-500 ">
+        <ul className="text-3xl w-full">
+          <div className="flex flex-row h-[60px] justify-between gap-4 md:gap-12 lg:gap-10 items-center text-xl bg-white text-gray-500">
             <div>
               <img
                 src={Logo}
                 onClick={() => navigate("/")}
                 className="w-12 md:w-16 lg:w-32 xl:w-60 h-12 ml-2 md:ml-2 lg:ml-12 hover:cursor-pointer lg:overflow-x-hidden xl-0"
+                alt="Logo"
               />
             </div>
-            <div className="  h-full   md:flex md:flex-row md:gap-4 lg:gap-4 xl:flex xl:flex-row xl:justify-between xl:gap-6 px-4 items-center">
-              <div className="flex gap-3 justify-around h-full items-center j">
+            <div className="h-full md:flex md:flex-row md:gap-4 lg:gap-4 xl:flex xl:flex-row xl:justify-between xl:gap-6 px-4 items-center">
+              <div className="flex gap-3 justify-around h-full items-center">
                 {MenuItems.map((item, index) => (
                   <li
-                    className={`text-blue-900  hover:bg-slate-200  rounded-md flex justify-center p-1 px-1 items-center w-fit cursor-pointer font-medium text-[17px] ${
+                    className={`text-blue-900 hover:bg-slate-200 rounded-md flex justify-center p-1 px-1 items-center w-fit cursor-pointer font-medium text-[17px] ${
                       selectedIndex === index
                         ? "bg-slate-200 hover:text-blue-900 text-blue-900 border-0 font-semibold"
                         : "border-transparent border-2"
                     }`}
-                    key={item}
+                    key={index} // Use index as the key if item doesn't have a unique id
                     onClick={() => handleSelect(index)}
                   >
                     {item}
@@ -258,68 +369,61 @@ function Nav({ topDivRef, Form_Data }) {
                 ))}
               </div>
 
-              <div className=" flex  flex-row gap-4 text-md  items-center font-thin">
+              <div className="flex flex-row gap-4 text-md items-center font-thin">
                 <div
                   className="relative"
-                  onMouseEnter={handleMouseEnter}
-                  onMouseLeave={handleMouseLeave}
+                  onMouseEnter={() => setIsPopupVisible(true)}
+                  onMouseLeave={() => setIsPopupVisible(false)}
                 >
-                  <div className="flex  items-center" onClick={handleredirect}>
+                  <div
+                    className="flex  items-center cursor-pointer"
+                    onClick={handleredirect}
+                  >
                     <img
                       src={add}
-                      className="w-4 md:w-6 lg:w-8 h-8 cursor-pointer"
+                      className="w-4 md:w-6 lg:w-8 h-8"
                       alt="clickable"
                       onClick={handleredirect}
                     />
-                    {/* <div className="text-blue-900 hover:cursor-pointer ">
-                      <div className="text-sm font-medium -mb-2">
-                        Hello, Sign in
-                      </div>
-                      <div className="text-base font-semibold">
-                        Account & Lists
-                      </div>
-                    </div> */}
-                    <div className="text-blue-900 hover:cursor-pointer">
+                    <div className="text-blue-900 hover:cursor-pointer ">
                       {user ? (
                         <>
-                          <div className="text-sm font-medium -mb-2">
-                            Hello, {user.firstName}
-                          </div>
-                          <div className="text-base font-semibold">
-                            Account & Lists
+                          <div className="text-base font-medium ">
+                            {user.firstName} {user.lastName}
                           </div>
                         </>
                       ) : (
                         <>
-                          <div className="text-sm font-medium -mb-2">
-                            Hello, Sign in
-                          </div>
-                          <div className="text-base font-semibold">
-                            Account & Lists
-                          </div>
+                          <div className="text-base font-medium ">Sign in</div>
                         </>
                       )}
                     </div>
                   </div>
                   {isPopupVisible && (
-                    <div className="fixed flex z-10">
-                      <div className="bg-white p-4 rounded shadow-lg w-64">
+                    <div
+                      className="fixed flex z-10 -ml-5"
+                      // "absolute top-full  right-0 mt-2 w-64 bg-white p-2 rounded shadow-lg z-10"
+                    >
+                      <div
+                        className="bg-white p-4 rounded shadow-lg w-60"
+                        // "w-full flex flex-col"
+                      >
                         <div className="w-full flex ">
                           {user ? (
                             <li
-                              className="cursor-pointer"
+                              className="cursor-pointer "
                               onClick={handleLogout}
                             >
                               <Link
                                 to="/login"
-                                className="bg-blue-900 text-white rounded px-2 py-1"
+                                className="bg-blue-900 text-white rounded  w-32 py-1 block text-center"
                               >
                                 Logout
                               </Link>
                             </li>
                           ) : (
                             <a
-                              className="bg-blue-900 text-white py-1 hover:cursor-pointer px-2 rounded"
+                              className="bg-blue-900 text-white py-1 hover:cursor-pointer px-2 rounded block text-center "
                               onClick={handleRedirect}
                             >
                               Sign In
@@ -327,83 +431,73 @@ function Nav({ topDivRef, Form_Data }) {
                           )}
                         </div>
                         <p
-                          className=" text-base hover:cursor-pointer"
+                          className="text-base hover:cursor-pointer mb-2  text-left"
                           onClick={handlesignup}
                         >
                           New User?{" "}
                           <span className="text-blue-900 hover:text-red-500 hover:underline">
-                            Start here
+                            Sign Up
                           </span>
                         </p>
-                        <h2
-                          className="text-lg font-semibold cursor-pointer"
-                          onClick={handleuser}
-                        >
-                          Your Account
-                        </h2>
-                        <ul>
-                          <li className="">
-                            <a
-                              href="#"
-                              className="text-lg text-blue-900"
-                              onClick={handleorder}
+                        {user && (
+                          <>
+                            <h2
+                              className="text-lg font-semibold cursor-pointer"
+                              onClick={handleuser}
                             >
-                              Order List
-                            </a>
-                          </li>
-                          <li className="">
-                            <a
-                              href="#"
-                              className="text-blue-900"
-                              onClick={handleclick}
-                            >
-                              Wishlist
-                            </a>
-                          </li>
-
-                          <li>
-                            <Link href="#" className="text-lg text-blue-900">
-                              Account Settings
-                            </Link>
-                          </li>
-
-        
-                        </ul>
+                              Your Account
+                            </h2>
+                            <ul className="text-left">
+                              <li className="mb-1">
+                                <a
+                                  href="#"
+                                  className="text-lg text-blue-900"
+                                  onClick={handleorder}
+                                >
+                                  Order List
+                                </a>
+                              </li>
+                              <li className="">
+                                <a
+                                  href="#"
+                                  className="text-blue-900"
+                                  onClick={handleclick}
+                                >
+                                  Wishlist
+                                </a>
+                              </li>
+                            </ul>
+                          </>
+                        )}
                       </div>
                     </div>
                   )}
                 </div>
 
-                <li className="relative cursor-pointer " onClick={handleCart}>
+                <li className=" cursor-pointer" onClick={handleCart}>
                   <a>
-                    <img
-                      src={cartNav}
-                      className="w-1  md:w-3 lg:w-5 xl:w-7 pt-2 h-3 md:h-5 lg:h-7 xl:h-9  text-blue-900 hover:text-gray-400 hover:scale-110  duration-500"
-                      // onClick={handleCart}
-                    />
+                    <Tooltip title="Cart" placement="top">
+                      <img
+                        src={cartNav}
+                        className="w-1 md:w-3 lg:w-5 xl:w-7 pt-2 h-3 md:h-5 lg:h-7 xl:h-9 text-blue-900 hover:text-gray-400 hover:scale-110 duration-500"
+                        alt="Cart"
+                      />
+                    </Tooltip>
                   </a>
-                  <div
-                    className={`absolute  text-white rounded-full px-1 text-xs border bg-blue-900 top-1 left-2 font-medium `}
-                  >
+                  <div className="absolute text-white rounded-full px-1 text-xs border bg-blue-900 top-5 right-16 font-medium">
                     {cart.length}
                   </div>
                 </li>
                 <li>
                   <a>
-                    <img
-                      src={like}
-                      onClick={handleclick}
-                      className="w-1 md:w-3 lg:w-5 xl:w-7 pt-2 h-2 md:h-4 lg:h-6 xl:h-8 cursor-pointer hover:scale-110 transition duration-300"
-                    />{" "}
-                  </a>
-                </li>
-                <li>
-                  <a>
-                    <img
-                      src={compare}
-                      // onClick={handleclick}
-                      className="w-1  md:w-3 lg:w-5 xl:w-7 pt-2 h-3 md:h-5 lg:h-7 xl:h-9 hover:scale-110 transition duration-300"
-                    />{" "}
+                    <Tooltip title="Wishlist" placement="top">
+                      <img
+                        src={like}
+                        onClick={handleclick}
+                        className="w-1 md:w-3 lg:w-5 xl:w-7 pt-2 h-2 md:h-4 lg:h-6 xl:h-8 cursor-pointer hover:scale-110 transition duration-300"
+                        alt="Like"
+                      />
+                    </Tooltip>
                   </a>
                 </li>
               </div>
@@ -420,12 +514,11 @@ function Nav({ topDivRef, Form_Data }) {
               <li
                 key={index}
                 onClick={() => handleItemclick(item)}
-                className={`flex gap-1 items-center justify-center cursor-pointer font-semibold hover:text-black ${
-                  item.label === "SELL" &&
-                  Form_Data?.userType === "Retail Customer"
-                    ? "hidden"
-                    : ""
-                }`}
+                className={`flex gap-1 items-center justify-center cursor-pointer font-semibold hover:text-black
+                   ${
+                     //  item.label === "SELL" &&
+                     Form_Data?.userType === "Retail Customer" ? "hidden" : ""
+                   }`}
               >
                 <img
                   src={item.icon}
@@ -459,7 +552,7 @@ function Nav({ topDivRef, Form_Data }) {
             </div>
           )}
 
-          <div className="flex bg-white rounded-md items-center w-[40%] lg:gap-10">
+          <div className="flex bg-whit rounded-md items-center w-[50%] lg:gap-10">
             <div
               ref={dropdownRef}
               className={`w-full relative flex items-center ${
@@ -468,64 +561,109 @@ function Nav({ topDivRef, Form_Data }) {
               onFocus={handleFocusIn}
               onBlur={handleFocusOut}
             >
+              {/* <Link to="/allProducts/CategoryProducts"> */}
               <button
-                className={`h-12 pl-2 mr-[1px] font-semibold text-left gap-1 text-[14px] flex items-center text-gray-600 bg-gray-100 border-gray-300 rounded-l-md border ${
+                className={`h-12 pl-2 mr-[1px] w-auto font-semibold text-left gap-1 text-[14px] flex items-center text-gray-600 bg-gray-100 border-gray-300 rounded-l-md border ${
                   isButtonFocused ? "ring-2 ring-blue-500" : ""
                 } button-focus`}
                 onClick={handleDropdownToggle}
                 onFocus={handleFocusIn}
                 onBlur={handleFocusOut}
               >
-                All
+                {selectedItem}
                 <span>
                   <img src={dropdown} className="h-4 w-4" />
                 </span>
               </button>
+              {/* </Link> */}
 
               {isDropdownOpen && (
                 <div
                   className="absolute z-10"
                   style={{ top: "30px", left: "0px" }}
                 >
-                  <div className="bg-white px-4 py-3 rounded shadow-lg w-64">
+                  {/* <div className="bg-white  w-64">
                     {components.map((items, index) => (
-                      <ul key={index}>
+                      <ul onClick={() => handleCriteria(items)} key={index}>
                         <li className="">
                           <a
-                            className="hover:text-black text-sm font-medium text-blue-900"
-                            onClick={() => handleItemClick(items.name)}
+                            className="hover:text-black cursor-pointer text-sm font-medium text-blue-900"
+                            onClick={() => handleItemClick(items.categoryName)}
                             onMouseLeave={handleCatMouseLeave}
                           >
-                            {items.name}
+                            {items.categoryName}
                           </a>
-                          {popUps === items.name && (
-                            <div
-                              className="absolute bg-white border border-gray-300 rounded shadow-lg"
-                              style={{
-                                top: "0%",
-                                left: "100%",
-                                width: "150px",
-                              }}
-                            >
-                              {items.component}
-                            </div>
-                          )}
+                        </li>
+                      </ul>
+                    ))}
+                  </div> */}
+                  <div className="bg-white w-64">
+    {modifiedComponents.map((items, index) => (
+      <ul onClick={() => handleCriteria(items)} key={index}>
+        <li>
+          <a
+            className="hover:text-black cursor-pointer text-sm font-medium text-blue-900"
+            onClick={() => handleItemClick(items.categoryName)}
+            onMouseLeave={handleCatMouseLeave}
+          >
+            {items.categoryName}
+          </a>
+        </li>
+      </ul>
+    ))}
+  </div>
+                </div>
+              )}
+
+              {/* {isDropdownOpen && (
+                <div
+                  className="absolute z-10"
+                  style={{ top: "30px", left: "0px" }}
+                >
+                  <div className="bg-white w-64">
+                    <ul onClick={() => handleCriteria({ categoryName: "All" })}>
+                      <li className="">
+                        <a
+                          className="hover:text-black cursor-pointer text-sm font-medium text-blue-900"
+                          onClick={() => handleItemClick("All")}
+                          onMouseLeave={handleCatMouseLeave}
+                        >
+                          All
+                        </a>
+                      </li>
+                    </ul>
+                    {components.map((items, index) => (
+                      <ul onClick={() => handleCriteria(items)} key={index}>
+                        <li className="">
+                          <a
+                            className="hover:text-black cursor-pointer text-sm font-medium text-blue-900"
+                            onClick={() => handleItemClick(items.categoryName)}
+                            onMouseLeave={handleCatMouseLeave}
+                          >
+                            {items.categoryName}
+                          </a>
                         </li>
                       </ul>
                     ))}
                   </div>
                 </div>
-              )}
+              )} */}
 
               <div className="flex w-full h-12 border container-focus">
                 <input
                   type="text"
                   placeholder="Search for products..."
+                  value={SearchInput}
                   className="flex-grow p-4 border-none focus:outline-none container-focus"
+                  onChange={handleSearch}
+                  onKeyDown={handleKeyDown}
                 />
-                <a className="w-[40px] flex items-center justify-center p-2 bg-blue-900 text-white border-blue-500 rounded-r-md focus:outline-none container-focus">
+                <button
+                  onClick={() => handleSearchAPI()}
+                  className="w-[40px] flex items-center justify-center p-2 bg-blue-900 text-white border-blue-500 rounded-r-md focus:outline-none container-focus"
+                >
                   <img src={search} />
-                </a>
+                </button>
               </div>
             </div>
           </div>

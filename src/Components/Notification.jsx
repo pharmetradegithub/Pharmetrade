@@ -13,7 +13,10 @@ const Notification = ({ show, message }) => {
       leaveFrom="translate-x-0 opacity-100"
       leaveTo="translate-x-full opacity-0"
     >
-      <div className="fixed top-4 right-4 bg-green-500 text-white py-2 px-4 rounded-lg shadow-lg">
+      {/* <div className="fixed top-4 right-4 bg-blue-900 text-white py-2 px-4 rounded-lg shadow-lg">
+        {message}
+      </div> */}
+      <div className="fixed top-4 right-4 bg-blue-900 text-white py-2 px-4 rounded-lg shadow-lg z-50">
         {message}
       </div>
     </Transition>

@@ -1,23 +1,13 @@
-// import React from 'react'
-
-// const LayoutAllQuotesProducts = () => {
-//   return (
-//     <div>
-      
-//     </div>
-//   )
-// }
-
-// export default LayoutAllQuotesProducts
-
-
-
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { CiMenuKebab } from "react-icons/ci";
 // import QuoteDetail from "../Components/QuoteDetail";
 import filter from "../../../assets/Filter_icon.png";
+import { useSelector } from "react-redux";
+import { fetchQuotedProduct } from "../../../Api/BidApi";
 
 const LayoutAllQuotesProducts = () => {
+  const bidQuotedProduct = useSelector((state) => state.bid.bidQuotedProduct)
+  console.log("bidquotedProduct", bidQuotedProduct)
   const stats = [
     { label: "Return Requested", value: 150, percentage: 75 },
     { label: "Return Approved", value: 120, percentage: 60 },
@@ -51,6 +41,15 @@ const LayoutAllQuotesProducts = () => {
       updated: "22-08-12",
     },
   ];
+
+  const user = useSelector((state) => state.user.user)
+  useEffect(() => {
+    console.log("useEffect called")
+    const product = async() => {
+      await fetchQuotedProduct(user.customerId)
+    }
+    product()
+  }, [])
 
   return (
     <div className="relative bg-gray-100 w-full h-full flex justify-center items-center ">

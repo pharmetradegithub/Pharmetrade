@@ -1,14 +1,26 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FaFilter } from "react-icons/fa";
 import filter from "../../../assets/Filter_icon.png";
 import share from '../../../assets/upload1.png'
+import { useDispatch, useSelector } from "react-redux";
+import { fetchPaymentHistory } from "../../../Api/PaymentHistoryApi";
+import { Tooltip } from "@mui/material";
+import eye from '../../../assets/eye.png'
+import Pagination from "../../Pagination";
+// import { fetchPaymentHistory } from "../../../Api/PaymentHistory";
 
 
 function LayoutPaymentHistory() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedOption, setSelectedOption] = useState("all");
+  const [itemsPerPage, setItemsPerPage] = useState(10); // Set initial items per page
+  const [currentPage, setCurrentPage] = useState(1);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [selectedFormat, setSelectedFormat] = useState("csv");
+  const user = useSelector((state) => state.user.user)
+  const paymentHistory = useSelector((state) => state.dashboard.getPaymentHistory)
+  console.log("payment-->", paymentHistory)
+  const dispatch = useDispatch()
 
   const handleChange = (event) => {
     setSelectedOption(event.target.value);
@@ -71,8 +83,15 @@ function LayoutPaymentHistory() {
       payout.transactionid.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  useEffect(() => {
+    dispatch(fetchPaymentHistory(user?.customerId))
+  }, [user?.customerId])
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = paymentHistory.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil((paymentHistory?.length || 0) / itemsPerPage);
   return (
-    <div className="bg-gray-100 w-full h-full flex items-center justify-center">
+    <div className="bg-gray-100 w-full h-full flex items-center justify-center overflow-y-scroll">
       <div className="w-[95%] h-full mt-8">
         <div className="flex justify-between">
           <h1 className="text-[22px] text-blue-900 font-semibold">Payment History</h1>
@@ -180,44 +199,67 @@ function LayoutPaymentHistory() {
           <table className="w-full">
             <thead className="bg-blue-900 text-white">
               <tr className="border-b-2">
-                <th className="px-4 py-2 text-left">Purchase Date</th>
+                {/* <th className="px-4 py-2 text-left">Purchase Date</th>
                 <th className="px-4 py-2 text-left">Transaction Id</th>
                 <th className="px-4 py-2 text-left">Note</th>
                 <th className="px-4 py-2 text-left">Net Amount</th>
-                <th className="px-4 py-2 text-left">View</th>
+                <th className="px-4 py-2 text-left">View</th> */}
+                <th className="px-4 py-2 text-left">OrderId</th>
+                <th className="px-4 py-2 text-left">Payment Date</th>
+                <th className="px-4 py-2 text-left">Payment Status</th>
+                <th className="px-4 py-2 text-left">Payment Amount</th>
+                <th className="px-4 py-2 text-left">Action</th>
               </tr>
             </thead>
             <tbody>
-              {filteredPayouts.map((payout, index) => (
-                <tr key={index} className="border-b">
-                  <td className="px-4 py-2">{payout.purchase}</td>
-                  <td className="px-4 py-2">{payout.transactionid}</td>
-                  <td className="px-4 py-2">{payout.note}</td>
-                  <td className="px-4 py-2">{payout.netamount}</td>
-                  <td className="px-4 py-2">{payout.view}</td>
+              {currentItems.length > 0 ? (
+                currentItems.map((payout, index) => (
+                  <tr key={index} className="border-b">
+                    <td className="px-4 py-2">{indexOfFirstItem+index + 1}</td>
+                    <td className="px-4 py-2">
+                      {/* {payout.paymentDate} */}
+                      {new Date(payout.paymentDate)
+                        .toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "2-digit",
+                          day: "2-digit",
+                        })
+                        .replace(/\//g, "-")}
+                    </td>
+                    <td className="px-4 py-2">{payout.paymentStatus}</td>
+                    <td className="px-4 py-2">{payout.paymentAmount}</td>
+                    <td className="px-4 py-2">
+                      <Tooltip title="View" placement="top">
+                        <img src={eye} className="w-5 h-5" onClick={() => handleClickView(product?.orderId)} />
+                        {/* <FaFileInvoice className="w-5 h-5"/> */}
+                      </Tooltip>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="5" className="px-4 py-2 text-center">
+                    No payment history available
+                  </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>
+        <Pagination
+          indexOfFirstItem={indexOfFirstItem}
+          indexOfLastItem={indexOfLastItem}
+          productList={paymentHistory}
+          itemsPerPage={itemsPerPage}
+          setItemsPerPage={setItemsPerPage}
+          currentPage={currentPage}
+          setCurrentPage={setCurrentPage}
+        />
       </div>
     </div>
   );
 }
 
 export default LayoutPaymentHistory;
-
-// import React from 'react'
-
-// function LayoutPaymentHistory() {
-//   return (
-//     <div>
-      
-//     </div>
-//   )
-// }
-
-// export default LayoutPaymentHistory
-
 
 

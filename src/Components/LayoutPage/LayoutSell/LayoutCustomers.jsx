@@ -1,15 +1,26 @@
-import React, { useState } from "react";
-import { FaFilter } from "react-icons/fa";
-import { IoMdSettings } from "react-icons/io";
+
+import React, { useEffect, useState } from "react";
 import { BsThreeDotsVertical } from "react-icons/bs";
-import { FaPlus } from "react-icons/fa6";
-import { IoIosArrowRoundUp } from "react-icons/io";
-import { IoIosArrowRoundDown } from "react-icons/io";
-import { CiSearch, CiMenuKebab } from "react-icons/ci";
+import { CiSearch } from "react-icons/ci";
+import { Tooltip } from "@mui/material";
+import edit from "../../../assets/Edit.png";
+import Bin from "../../../assets/Bin.png";
+import wrong from "../../../assets/Icons/wrongred.png";
+import Deactivate from "../../../assets/Deactivate.png";
 import filter from "../../../assets/Filter_icon.png";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchSellCustomer } from "../../../Api/Dashboard";
 
 function LayoutCustomers() {
   const [searchQuery, setSearchQuery] = useState("");
+  const dispatch = useDispatch();
+  const sellCustomer = useSelector((state) => state.dashboard.sellCustomer);
+  const user = useSelector((state) => state.user.user)
+
+  useEffect(() => {
+    dispatch(fetchSellCustomer(user?.customerId));
+  }, [dispatch]);
+
   const customers = [
     {
       name: "Rama Manda",
@@ -17,7 +28,6 @@ function LayoutCustomers() {
       contact: "7893497040",
       address: "Haardinf Ave iselin, New Jersey",
       total: "$9.65",
-      list: "1",
     },
     {
       name: "Venkat",
@@ -25,15 +35,52 @@ function LayoutCustomers() {
       contact: "9908389318",
       address: "Haardinf Ave iselin, New Jersey",
       total: "$3.98",
-      list: "View Order",
     },
   ];
 
-  const stats = [
-    { label: "Total Customers", value: "2,420", percentage: 20 },
-    { label: "Total Orders", value: "3,843", percentage: 25 },
-    { label: "Grand Total", value: "1,700", percentage: -11 },
-  ];
+  const [deletePop, setDeletePop] = useState(false);
+  const [openPop, setOpenPop] = useState(false);
+  const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [deletedCustomers, setDeletedCustomers] = useState([]); // Track deleted customers
+  const [deactivatedCustomers, setDeactivatedCustomers] = useState([]); // Track deactivated customers
+
+  // Open Deactivate Popup
+  const deactivatePopUp = (customer) => {
+    setSelectedCustomer(customer);
+    setOpenPop(true);
+  };
+
+  // Open Delete Popup
+  const deletePopUp = (customer) => {
+    setSelectedCustomer(customer);
+    setDeletePop(true);
+  };
+
+  // Close Deactivate Popup
+  const closeDeactivatePopup = () => {
+    setOpenPop(false);
+  };
+
+  // Close Delete Popup
+  const closeDeletePopup = () => {
+    setDeletePop(false);
+  };
+
+  // Confirm Deactivation
+  const confirmDeactivate = () => {
+    if (selectedCustomer) {
+      setDeactivatedCustomers([...deactivatedCustomers, selectedCustomer.name]);
+    }
+    setOpenPop(false);
+  };
+
+  // Confirm Delete
+  const confirmDelete = () => {
+    if (selectedCustomer) {
+      setDeletedCustomers([...deletedCustomers, selectedCustomer.name]);
+    }
+    setDeletePop(false);
+  };
 
   const filteredCustomers = customers.filter(
     (customer) =>
@@ -45,42 +92,14 @@ function LayoutCustomers() {
     <div className="bg-gray-100 w-full h-full flex items-center justify-center">
       <div className="w-[95%] h-full mt-8">
         <div className="flex justify-between">
-          <h1 className="text-[22px] text-blue-900 font-semibold">
-            Marketplace Customers
-          </h1>
+          <h1 className="text-[22px] text-blue-900 font-semibold">Marketplace Customers</h1>
         </div>
 
         <div className="flex justify-normal flex-wrap gap-2 w-full mt-4 ">
-          {stats.map((stat, index) => (
-            <div
-              key={index}
-              className="bg-white w-56 rounded-lg shadow-lg h-28 p-4"
-            >
-              <div className="flex items-center justify-between">
-                <h1 className="text-[15px] text-gray-700 font-normal">
-                  {stat.label}
-                </h1>
-                <BsThreeDotsVertical />
-              </div>
-              <div className="flex justify-between items-center mt-4">
-                <h1 className="text-2xl font-semibold">{stat.value}</h1>
-                {/* <span className={`text-sm flex p-1 items-center rounded-lg ${stat.percentage > 0 ? 'bg-green-100 text-green-500' : 'bg-red-100 text-red-500'}`}>
-                  {stat.percentage > 0 ? <IoIosArrowRoundUp /> : <IoIosArrowRoundDown />}
-                </span> */}
-                <div
-                  className={`text-sm p-1 rounded-lg ${
-                    stat.percentage > 0 ? "bg-green-400" : "bg-red-400"
-                  }`}
-                >
-                  {stat.percentage > 0 ? "↑" : "↓"} {Math.abs(stat.percentage)}%
-                </div>
-              </div>
-            </div>
-          ))}
+          {/* Add stats and percentages display here */}
         </div>
 
         <div className="flex items-center justify-between mt-6">
-          {/* search start */}
           <div className="relative flex">
             <input
               type="text"
@@ -91,56 +110,166 @@ function LayoutCustomers() {
             />
             <CiSearch className="absolute right-0 top-4 text-gray-400 mr-2" />
           </div>
-          {/* search end */}
           <div className="flex">
             <div className="flex p-1">
               <button className="bg-green-300 p-2 rounded-md h-7 flex items-center">
-                <img src={filter} className="w-6 h-6 " />
+                <img src={filter} className="w-6 h-6 " alt="Filter" />
                 Filter
               </button>
-            </div>
-            <div className="flex bg-white  h-11 w-48 justify-evenly border rounded-md">
-              <select className="m-2">
-                <option>-Select Group-</option>
-              </select>
             </div>
           </div>
         </div>
 
         <div className="border text-[15px] rounded-md bg-white mt-4">
-          <table className="w-full">
-            <thead className="bg-blue-900 text-white">
-              <tr className="border-b-2">
-                <th className="px-4 py-2 text-left">Customer Name</th>
-                <th className="px-4 py-2 text-left">Email</th>
-                <th className="px-4 py-2 text-left">Contact No</th>
-                <th className="px-4 py-2 text-left">Address</th>
-                <th className="px-4 py-2 text-left">Grand Total</th>
-                <th className="px-4 py-2 text-left">List of Orders</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(() => {
-                const rows = [];
-                for (let i = 0; i < filteredCustomers.length; i++) {
-                  const customer = filteredCustomers[i];
-                  rows.push(
-                    <tr key={i} className="border-b">
-                      <td className="px-4 py-2">{customer.name}</td>
-                      <td className="px-4 py-2">{customer.email}</td>
-                      <td className="px-4 py-2">{customer.contact}</td>
-                      <td className="px-4 py-2">{customer.address}</td>
-                      <td className="px-4 py-2">{customer.total}</td>
-                      <td className="px-4 py-2">{customer.list}</td>
-                    </tr>
-                  );
-                }
-                return rows;
-              })()}
-            </tbody>
-          </table>
-        </div>
+  <table className="w-full">
+    <thead className="bg-blue-900 text-white">
+      <tr className="border-b-2">
+        <th className="px-4 py-2 text-left">Customer Name</th>
+        <th className="px-4 py-2 text-left">Email</th>
+        <th className="px-4 py-2 text-left">Contact No</th>
+        <th className="px-4 py-2 text-left">Address</th>
+        <th className="px-4 py-2 text-left">Grand Total</th>
+        <th className="px-4 py-2 text-center">Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {sellCustomer.length > 0 ? (
+        sellCustomer.map((customer, i) => (
+          <tr key={i} className="border-b">
+            <td className="px-4 py-2">{customer.customerName}</td>
+            <td className="px-4 py-2">{customer.email}</td>
+            <td className="px-4 py-2">{customer.mobile}</td>
+            <td className="px-4 py-2">{customer.address1}</td>
+            <td className="px-4 py-2">{customer.totalAmount}</td>
+            <td className="px-4 py-2 flex items-center space-x-2 justify-center">
+              <Tooltip title="Edit" placement="top">
+                <img
+                  src={edit}
+                  alt="Edit"
+                  className={`cursor-pointer w-7 h-7 ${
+                    deletedCustomers.includes(customer.name) ||
+                    deactivatedCustomers.includes(customer.name)
+                      ? "opacity-50 pointer-events-none"
+                      : ""
+                  }`}
+                  onClick={() => console.log("Edit clicked")}
+                />
+              </Tooltip>
+              <Tooltip title="Delete" placement="top">
+                <img
+                  src={Bin}
+                  alt="Delete"
+                  className={`cursor-pointer w-5 h-5 ${
+                    deletedCustomers.includes(customer.name) ||
+                    deactivatedCustomers.includes(customer.name)
+                      ? "opacity-50 pointer-events-none"
+                      : ""
+                  }`}
+                  onClick={() => deletePopUp(customer)}
+                />
+              </Tooltip>
+              <Tooltip title="Deactivate" placement="top">
+                <img
+                  src={Deactivate}
+                  alt="Deactivate"
+                  className={`cursor-pointer w-4 h-4 ${
+                    deletedCustomers.includes(customer.name) ||
+                    deactivatedCustomers.includes(customer.name)
+                      ? "opacity-50 pointer-events-none"
+                      : ""
+                  }`}
+                  onClick={() => deactivatePopUp(customer)}
+                />
+              </Tooltip>
+            </td>
+          </tr>
+        ))
+      ) : (
+        <tr>
+          <td colSpan="6" className="px-4 py-2 text-center">
+            No customer details
+          </td>
+        </tr>
+      )}
+    </tbody>
+  </table>
+</div>
+
       </div>
+
+      {/* Deactivate Popup */}
+      {openPop && (
+        <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center">
+          
+
+<div className="bg-white p-6 rounded-lg shadow-lg">
+  <div className="flex justify-end">
+    <img 
+      src={wrong} 
+      alt="Warning" 
+      className="w-5 h-5 cursor-pointer" 
+      onClick={closeDeactivatePopup} 
+    />
+  </div>
+  
+  <p className="mt-2">
+    Are you sure you want to deactivate this product?
+  </p>
+
+  <div className="mt-4 flex justify-around space-x-4">
+    <button
+      className="px-4 py-2 text-white bg-red-500 rounded-lg"
+      onClick={closeDeactivatePopup}
+    >
+      No
+    </button>
+    <button
+      className="px-4 py-2 bg-green-500 text-white rounded-lg"
+      onClick={confirmDeactivate}
+    >
+      Yes
+    </button>
+  </div>
+</div>
+
+        </div>
+      )}
+
+      {/* Delete Popup */}
+      {deletePop && (
+        <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center">
+<div className="bg-white p-6 rounded-lg shadow-lg">
+  <div className="flex justify-end">
+    <img 
+      src={wrong} 
+      alt="Warning" 
+      className="w-5 h-5 cursor-pointer" 
+      onClick={closeDeletePopup}
+    />
+  </div>
+  
+  <p className="mt-2">
+    Are you sure you want to delete this product?
+  </p>
+
+  <div className="mt-4 flex justify-around space-x-4">
+    <button
+      className="px-4 py-2 text-white bg-red-500 rounded-lg"
+      onClick={closeDeletePopup}
+    >
+      No
+    </button>
+    <button
+      className="px-4 py-2 bg-green-500 text-white rounded-lg"
+      onClick={confirmDelete}
+    >
+      Yes
+    </button>
+  </div>
+</div>
+
+        </div>
+      )}
     </div>
   );
 }

@@ -9,7 +9,7 @@ import Logo from "./assets/logo2.png";
 import Nav from "./Components/HomePage/Layout/Nav";
 import { NavbarProvider } from "./Components/NavbarContext";
 import Product from "./Components/Product";
-import Products from "./Components/Products";
+// import Products from "./Components/Products";
 import Items from "./Components/Items";
 import Signup from "./Components/Signup";
 import OTP2 from "./Components/OTP2";
@@ -71,6 +71,8 @@ import AdminDasboard from "./Components/Admin/Dashboard/AdminDasboard";
 import Faqs from "./Components/Faqs";
 import LayoutPanel from "./Components/LayoutPage/LayoutStatic/LayoutPanel";
 import LayoutDashboard from "./Components/LayoutPage/LayoutDashboard/LayoutDashboard";
+import LayoutSellerDashboard from "./Components/LayoutPage/LayoutDashboard/LayoutSellerDashboard";
+import LayoutCustomerDashboard from "./Components/LayoutPage/LayoutDashboard/LayoutCustomerDashboard";
 import LayoutBuy from "./Components/LayoutPage/LayoutBuy/LayoutBuyProducts";
 import LayoutBid from "./Components/LayoutPage/LayoutBid/LayoutBid";
 import LayoutJoin from "./Components/LayoutPage/LayoutJoin/LayoutJoin";
@@ -107,8 +109,45 @@ import { getCartItemsApi } from "./Api/CartApi";
 import { fetchWishlistItemsApi } from "./Api/WishList";
 import { LoadingApi, TopMarginApi } from "./Api/HomeStaticApi";
 import { fetchAllBannersApi } from "./Api/BannerApi";
-import { fetchAllProductsApi, fetchOtcProductsApi, fetchRecentSoldProductsApi, fetchRxProductsApi } from "./Api/ProductApi";
-import { customerOrderGetApi } from "./Api/CustomerOrderList";
+import {
+  fetchAllProductsApi,
+  fetchOtcProductsApi,
+  fetchRecentSoldProductsApi,
+  fetchRxProductsApi,
+} from "./Api/ProductApi";
+import ProductsPanel from "./Components/HomeProducts/Layout/ProductsPanel";
+import AllProducts from "./Components/HomeProducts/Components/AllProducts";
+import OtcProducts from "./Components/HomeProducts/Components/OtcProducts";
+import RxProducts from "./Components/HomeProducts/Components/RxProducts";
+import Address from "./Components/CheckoutPage/Address";
+import LayoutOtcProducts from "./Components/LayoutPage/LayoutNavComponents/LayoutOtcProducts";
+import Gethelphere from "./Components/Gethelphere";
+import CategoryProducts from "./Components/HomeProducts/Components/CategoryProducts";
+import LayoutCategory from "./Components/LayoutPage/LayoutCategory/LayoutCategory";
+import LayoutProfile from "./Components/LayoutPage/LayoutProfile/LayoutProfile";
+// import AdminBanners from './Components/Admin/Banners/AdminBanners'
+import AdminBanners from "./Components/Admin/Banners/AdminBanners";
+import Login from "./Components/Login";
+import OffersProducts from "./Components/HomeProducts/Components/OffersProducts";
+import Customer from "./Components/Admin/Customer/CustomerList";
+import CustomerList from "./Components/Admin/Customer/CustomerList";
+import SellerList from "./Components/Admin/RetailSeller/SellerList";
+import LayoutBuyerUpcomingGrid from "./Components/LayoutPage/LayoutDashboard/LayoutBuyerUpcomingGrid";
+import LayoutBuyerReceiversgrid from "./Components/LayoutPage/LayoutDashboard/LayoutBuyerReceiversgrid";
+import LayoutBuyerCancelledgrid from "./Components/LayoutPage/LayoutDashboard/LayoutBuyerCancelledgrid";
+import Products from "./Components/Admin/Products/TotalProducts";
+import Settlement from "./Components/Admin/Components/Settlement";
+import Incomimg from "./Components/Admin/Components/Incomimg";
+import Outgoing from "./Components/Admin/Components/Outgoing";
+import OtcProductsAdmin from "./Components/Admin/Products/OtcProductsAdmin";
+import RxProductsAdmin from "./Components/Admin/Products/RxProductsAdmin";
+import OfferedProductsAdmin from "./Components/Admin/Products/OfferedProductsAdmin";
+import EditProductAdmin from "./Components/Admin/Products/EditProductAdmin";
+import EditSellerList from "./Components/Admin/RetailSeller/EditSellerList";
+import GeneralMerchandiseSeller from "./Components/Admin/GeneralMerchandiseSeller/GeneralMerchandiseSeller";
+import PharmacyDistributor from "./Components/Admin/PharmacyDistributor/PharmacyDistributor";
+
+// import { customerOrderGetApi } from "./Api/CustomerOrderList";
 
 function App() {
   const location1 = useLocation();
@@ -116,9 +155,9 @@ function App() {
   const loading = useSelector((state) => state.home.loading);
   const userId = localStorage.getItem("userId");
 
-  const topMargin = useSelector((state)=>state.home.TopMargin);
+  const topMargin = useSelector((state) => state.home.TopMargin);
   const topDivRef = useRef(null);
- 
+
   useEffect(() => {
     const LoadAll = async (userId) => {
       LoadingApi(true);
@@ -133,7 +172,7 @@ function App() {
       await fetchOtcProductsApi();
       await fetchRxProductsApi();
       await fetchAllProductsApi();
-      TopMarginApi(topDivRef?.current?.offsetHeight)
+      TopMarginApi(topDivRef?.current?.offsetHeight);
       LoadingApi(false);
     };
 
@@ -148,8 +187,7 @@ function App() {
   const [quantities, setQuantities] = useState([]);
   const [productsList, setProductsList] = useState([]);
   // Ref for the top fixed div
-  
-  console.log("top margin",topMargin)
+
   const [cartItems, setCartItems] = useState([]);
   useEffect(() => {
     console.log(cartItems);
@@ -158,7 +196,6 @@ function App() {
   function addCart(prolist) {
     setCartItems([...cartItems, prolist]);
   }
-  console.log(cartItems);
 
   function wishList(prolist) {
     setWishItems([...wishItems, prolist]);
@@ -195,9 +232,8 @@ function App() {
         <Nav topDivRef={topDivRef} cartItems={cartItems} />
       )} */}
       <div
-        className={`w-screen ${
-          loading == false ? "hidden" : "flex"
-        } flex flex-col justify-center items-center z-[100] bg-slate-200 absolute h-screen`}
+        className={`w-screen ${loading == false ? "hidden" : "flex"
+          } flex flex-col justify-center items-center z-[100] bg-slate-200 absolute h-screen`}
       >
         <div className="animate-pulse flex justify-center items-center flex-col">
           <img src={Logo} alt="" />
@@ -207,6 +243,7 @@ function App() {
         <Route path="/signup" element={<Signup />} />
         <Route path="/termsandconditions" element={<TermsAndConditions />} />
         <Route path="/login" element={<Signin />} />
+        <Route path="/PharmetradeLogin" element={<Login />} />
         <Route path="/otp2" element={<OTP2 />} />
         <Route path="/password" element={<Password />} />
         <Route path="/changepassword" element={<Changepassword />} />
@@ -220,14 +257,25 @@ function App() {
             />
           }
         >
+          <Route path="/allProducts" element={<ProductsPanel />}>
+            <Route path="" element={<AllProducts />} />
+            <Route path="/allProducts/OtcProducts" element={<OtcProducts />} />
+            <Route path="offers" element={<OffersProducts />} />
+
+            <Route path="/allProducts/RxProducts" element={<RxProducts />} />
+            <Route
+              path="/allProducts/CategoryProducts"
+              element={<CategoryProducts />}
+            />
+          </Route>
           <Route
             path="/cart"
             element={<Cart cartItems={cartItems} setCartItems={setCartItems} />}
           />
-          <Route
+          {/* <Route
             path="/products"
             element={<Products addCart={addCart} wishList={wishList} />}
-          />
+          /> */}
           {/* <Route path="/checkout" element={<Checkout />} /> */}
           <Route path="/order" element={<Order />} />
           <Route path="/pops" element={<Product />} />
@@ -248,12 +296,12 @@ function App() {
           <Route path="/buy" element={<Buy />} />
           <Route path="/whypharmetrade" element={<WhyPharma />} />
           <Route path="/aboutus" element={<AboutUs />} />{" "}
-          <Route path="/contactus" element={<Contactus />} />
+          {/* <Route path="/contactus" element={<Contactus />} /> */}
           <Route path="/requestdemo" element={<RequestDemo />} />
-          <Route
+          {/* <Route
             path="/offers"
             element={<Offers addCart={addCart} wishList={wishList} />}
-          />
+          /> */}
           <Route path="/faqs" element={<Faqs />} />
           <Route
             path="/wishlist"
@@ -263,7 +311,30 @@ function App() {
           />
         </Route>
 
-        <Route path="/checkout" element={<Checkout />} />
+        <Route path="/checkout" element={<Address />} />
+        <Route path="/contactus" element={<Contactus />} />
+
+        <Route path="/gethelphere" element={<Gethelphere />} />
+
+        {/* <Route
+          path="/allProducts"
+          element={
+            <ProductsPanel
+              topDivRef={topDivRef}
+              cartItems={cartItems}
+              topMargin={topMargin}
+            />
+          }
+        >
+          <Route path="" element={<AllProducts />} />
+          <Route path="/allProducts/OtcProducts" element={<OtcProducts />} />
+          <Route path="/allProducts/RxProducts" element={<RxProducts />} />
+          <Route path="offers" element={<OffersProducts />} />
+          <Route
+            path="/allProducts/CategoryProducts"
+            element={<CategoryProducts />}
+          />
+        </Route> */}
 
         <Route path="/seller" element={<SellerPanel />}>
           <Route path="" element={<Dashboard />} />
@@ -296,12 +367,26 @@ function App() {
             path="/layout"
             element={<LayoutDashboard addCart={addCart} wishList={wishList} />}
           />
+          <Route path="/layout/layoutprofile" element={<LayoutProfile />} />
+          <Route
+            path="/layout/layoutsellerdashboard"
+            element={<LayoutSellerDashboard />}
+          />
+          <Route
+            path="/layout/layoutcustomerdashboard"
+            element={<LayoutCustomerDashboard />}
+          />
+
+          <Route path="/layout/layoutbuyerupcominggrid" element={<LayoutBuyerUpcomingGrid />} />
+          <Route path="/layout/layoutbuyerreceivedgrid" element={<LayoutBuyerReceiversgrid />} />
+          <Route path="/layout/layoutbuyercancelledgrid" element={<LayoutBuyerCancelledgrid />} />
           <Route path="/layoutsell" element={<LayoutSell />} />
           <Route path="/layout/addproduct" element={<LayoutaddProduct />} />
           <Route
             path="/layout/addbulkproduct"
             element={<LayoutAddBulkProduct />}
           />
+
           <Route
             path="/layout/postingproducts"
             element={<LayoutPostingProducts />}
@@ -368,10 +453,38 @@ function App() {
           <Route path="/layout/layoutorderlist" element={<LayoutOrderlist />} />
           {/* <Route path='/layout/layoutreturn' element={<LayoutReturn />} /> */}
           <Route path="/layoutsidebar" element={<LayoutSidebar />} />
+          <Route
+            path="/layout/layoutOtcProducts"
+            element={<LayoutOtcProducts />}
+          />
+          <Route
+            path="/layout/layoutCategoryProducts"
+            element={<LayoutCategory />}
+          />
         </Route>
 
-        <Route path="/admin" element={<AdminPanel />}>
+        <Route path="/pharmEtradeadmin" element={<AdminPanel />}>
           <Route path="" element={<AdminDasboard />} />
+          <Route
+            path="/pharmEtradeadmin/AdminBanners"
+            element={<AdminBanners />}
+          />
+          <Route path="/pharmEtradeadmin/customerList" element={<CustomerList />} />
+          <Route path="/pharmEtradeadmin/RetailPharmacyList" element={<SellerList />} />
+          <Route path="/pharmEtradeadmin/GeneralMerchandiseSellerList" element={<GeneralMerchandiseSeller/>} />
+          <Route path="/pharmEtradeadmin/PharmacyDistributorList" element={<PharmacyDistributor />} />
+          <Route path="/pharmEtradeadmin/products" element={<Products />} />
+          <Route path="/pharmEtradeadmin/EditProductAdmin" element={<EditProductAdmin />} />
+          <Route
+            path="/pharmEtradeadmin/EditSellerList"
+            element={<EditSellerList />}
+          />
+          <Route path="/pharmEtradeadmin/OtcProducts" element={<OtcProductsAdmin />} />
+          <Route path="/pharmEtradeadmin/RxProducts" element={<RxProductsAdmin />} />
+          <Route path="/pharmEtradeadmin/OfferedProducts" element={<OfferedProductsAdmin />} />
+          <Route path="/pharmEtradeadmin/Settlement" element={<Settlement />} />
+          <Route path="/pharmEtradeadmin/Incoming" element={<Incomimg />} />
+          <Route path="/pharmEtradeadmin/Outgoing" element={<Outgoing />} />
         </Route>
 
         <Route element={<AccountPanel topMargin={topMargin} />}>

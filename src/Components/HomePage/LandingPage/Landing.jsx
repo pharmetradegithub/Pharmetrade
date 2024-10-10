@@ -9,8 +9,11 @@ import banner2 from "../../../assets/BannerText2.jpg";
 import banner3 from "../../../assets/BannerText3.jpg";
 import banner4 from "../../../assets/BannerText4.jpg";
 import "./Landing.css";
+import { useSelector } from "react-redux";
 
 function Landing({ topMargin, wishList, addCart }) {
+  const BannerData = useSelector((state) => state.banner.banner);
+  console.log(BannerData);
   const settings = {
     dots: true,
     infinite: true,
@@ -18,8 +21,8 @@ function Landing({ topMargin, wishList, addCart }) {
     slidesToShow: 1,
     slidesToScroll: 1,
     arrows: true,
-    autoplay: true,       // Auto play slides
-    autoplaySpeed: 3000,  // Slide change interval (3 seconds)
+    autoplay: true, // Auto play slides
+    autoplaySpeed: 3000, // Slide change interval (3 seconds)
   };
 
   return (
@@ -32,36 +35,21 @@ function Landing({ topMargin, wishList, addCart }) {
           }}
         >
           <div className="w-full relative h-[350px] overflow-hidden">
-            <Slider {...settings}>
-              <div>
-                <img
-                  src={banner4}
-                  alt="Carousel Image 1"
-                  className="w-full h-[350px]"
-                />
-              </div>
-              <div>
-                <img
-                  src={banner2}
-                  alt="Carousel Image 2"
-                  className="w-full h-[350px]"
-                />
-              </div>
-              <div>
-                <img
-                  src={banner3}
-                  alt="Carousel Image 3"
-                  className="w-full h-[350px]"
-                />
-              </div>
-              <div>
-                <img
-                  src={banner1}
-                  alt="Carousel Image 4"
-                  className="w-full h-[350px]"
-                />
-              </div>
-            </Slider>
+            {BannerData.length > 0 ? (
+              <Slider {...settings}>
+                {BannerData.map((item, index) => (
+                  <div key={index}>
+                    <img
+                      src={item.imageUrl}
+                      alt={`Carousel Image ${index + 1}`}
+                      className="w-full h-[350px] Largest:h-[350px] Largest:object-fill "
+                    />
+                  </div>
+                ))}
+              </Slider>
+            ) : (
+              <p className="text-center text-gray-500">No banners available</p>
+            )}
           </div>
         </div>
         <div className="w-full bg-slate-200 px-6">

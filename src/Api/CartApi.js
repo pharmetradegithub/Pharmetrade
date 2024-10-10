@@ -6,7 +6,7 @@ axios.defaults.baseURL = 'http://ec2-100-29-38-82.compute-1.amazonaws.com:5000/'
 export const getCartItemsApi = async (customerId) => {
     try {
       const response = await axios.get(`/api/Cart/GetCartItems?customerId=${customerId}`);
-      if (response.status === 200) {
+      if (response.status === 200 && response.data.result !== null) {
         const cartItems = response.data.result.map(item => ({
           ...item,
           updateQuantity: item.quantity 

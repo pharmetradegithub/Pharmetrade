@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { FaChevronDown, FaChevronUp } from "react-icons/fa";
-import logo from "../../../assets/logo_05.png";
+// import logo from "../../../assets/logo_05.png";
+import logo from "../../../assets/Icons/Logo_white.png";
 import profile from "../../../assets/ProfileSetting.png";
 import { useSelector } from "react-redux";
+import { logoutUserApi } from "../../../Api/UserApi";
 
 function LayoutSidebar() {
   const navigate = useNavigate();
@@ -14,8 +16,11 @@ function LayoutSidebar() {
   const [navItems, setnavItems] = useState([]);
   const user = useSelector((state) => state.user.user);
   const businessInfo = useSelector((state)=>state.user.businessInfo);
+  console.log("bbbbbb", businessInfo)
+
   const menuItems = useSelector((state)=>state.user.menuItems);
   console.log(user);
+  console.log("bbbbbghgvhg",businessInfo)
   console.log(menuItems,"menu");
   useEffect(() => {
     if(menuItems)
@@ -76,16 +81,14 @@ function LayoutSidebar() {
     };
 
     // Step 3: Build navItems from top-level menu items
-    const navItems = menuMap[0].map(createNavItem);
+    const navItems = menuMap[0]?.map(createNavItem) || [];
 
     return navItems;
   };
-
-  function handleLogout() {
-    localStorage.removeItem("login"); // Remove login data
-    localStorage.removeItem("firstname"); // Remove first name or other user data
-    navigate("/"); // Redirect to the login page
-  }
+  const handleLogout = () => {
+    logoutUserApi();
+    navigate('/')
+  };
 
   return (
     <div

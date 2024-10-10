@@ -27,6 +27,30 @@ export const loginUserApi = async (username, password) => {
     console.error('Failed to log in:', error);
   }
 };
+export const loginAdminUserApi = async (username, password) => {
+  try {
+    const response = await axios.post(
+      `/api/Customer/AdminLogin?adminId=${encodeURIComponent(username)}&Password=${encodeURIComponent(password)}`
+    );
+
+    if (response.status === 200) {
+
+      localStorage.setItem('userId', response.data.userId);
+      localStorage.setItem('token', response.data.token);
+      const userDetails = await axios.get(`/api/Customer/GetByCustomerId?customerId=${response.data.userId}`);
+      if (response.status === 200) {
+        store.dispatch({ type: 'user/setUser', payload: userDetails.data.result[0] });
+      } else {
+        console.error('Failed to fetch user data:', response.data.message);
+      }
+      return response.data.userId;
+    } else {
+      console.error('Login failed:', response.data.message);
+    }
+  } catch (error) {
+    console.error('Failed to log in:', error);
+  }
+};
 export const getUserByCustomerIdApi = async (customerId) => {
   try {
     const response = await axios.get(`/api/Customer/GetByCustomerId?customerId=${customerId}`);
